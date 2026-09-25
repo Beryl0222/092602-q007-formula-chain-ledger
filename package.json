@@ -1,0 +1,12 @@
+{
+  "name": "formula-chain-ledger",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "奶粉批次全链责任的服务端领域基础",
+  "scripts": {
+    "test": "node --test",
+    "build": "node --check src/domain.js && node --check src/repository.js && node --check src/service.js && node --check src/cli.js",
+    "check:sample": "node src/cli.js validate data/sample.json"
+  }
+}
