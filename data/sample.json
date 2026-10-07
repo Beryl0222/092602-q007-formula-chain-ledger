@@ -1,6 +1,57 @@
 {
-  "record_id": "can-lot-001",
-  "owner_id": "quality-office",
-  "state": "in-process",
-  "revision": 1
+  "description": "进口奶粉批次全链责任账演示场景：合作社成员→牧场资格→原奶→封签运输→合批/拆批→检验更正→监管放行/消费/二维码→关键节点隔离与可重复传播。",
+  "events": [
+    { "op": "record", "type": "coop_membership", "actor": "coop-admin", "payload": { "coop_id": "COOP-CAOP", "member_id": "FARMER-WANG" } },
+    { "op": "record", "type": "coop_membership", "actor": "coop-admin", "payload": { "coop_id": "COOP-CAOP", "member_id": "FARMER-LI" } },
+
+    { "op": "record", "type": "farm_qualification", "actor": "regulator", "payload": { "farm_id": "FARM-01", "qualification_no": "GAP-2026-001", "valid_from": "2026-01-01", "status": "active", "coop_id": "COOP-CAOP", "member_id": "FARMER-WANG" } },
+    { "op": "record", "type": "farm_qualification", "actor": "regulator", "payload": { "farm_id": "FARM-02", "qualification_no": "GAP-2026-002", "valid_from": "2026-01-01", "status": "active", "coop_id": "COOP-CAOP", "member_id": "FARMER-LI" } },
+
+    { "op": "record", "type": "raw_milk_batch", "actor": "farm-01", "payload": { "batch_id": "RAW-F01-0901", "farm_id": "FARM-01", "collected_at": "2026-09-01T06:00:00Z", "volume": 8000 } },
+    { "op": "record", "type": "raw_milk_batch", "actor": "farm-01", "payload": { "batch_id": "RAW-F01-0902", "farm_id": "FARM-01", "collected_at": "2026-09-01T07:00:00Z", "volume": 4000 } },
+    { "op": "record", "type": "raw_milk_batch", "actor": "farm-02", "payload": { "batch_id": "RAW-F02-0901", "farm_id": "FARM-02", "collected_at": "2026-09-01T06:30:00Z", "volume": 6000 } },
+
+    { "op": "record", "type": "test_report", "actor": "lab-zhou", "payload": { "report_id": "LAB-F01-0901", "target_id": "RAW-F01-0901", "test_method": "GB-5009.5", "method_version": "v2023", "parameter": "蛋白质", "result": "pass", "value": 3.3, "unit": "g/100g", "tested_by": "lab-zhou", "issued_at": "2026-09-01T09:00:00Z" } },
+    { "op": "record", "type": "test_report", "actor": "lab-zhou", "payload": { "report_id": "LAB-F01-0902", "target_id": "RAW-F01-0902", "test_method": "GB-5009.5", "method_version": "v2023", "parameter": "蛋白质", "result": "pass", "value": 3.2, "unit": "g/100g", "tested_by": "lab-zhou", "issued_at": "2026-09-01T09:10:00Z" } },
+    { "op": "record", "type": "test_report", "actor": "lab-zhou", "payload": { "report_id": "LAB-F02-0901", "target_id": "RAW-F02-0901", "test_method": "GB-5009.24", "method_version": "v2023", "parameter": "黄曲霉毒素M1", "result": "fail", "value": 0.6, "unit": "ug/kg", "limit": 0.5, "tested_by": "lab-zhou", "issued_at": "2026-09-01T09:20:00Z" } },
+
+    { "op": "record", "type": "exception_request", "actor": "plant-zhao", "payload": { "request_id": "EXC-F02-01", "target_id": "RAW-F02-0901", "report_id": "LAB-F02-0901", "requested_by": "plant-zhao", "reason": "初检临界超标，已抽样送第三方复检" } },
+    { "op": "record", "type": "exception_decision", "actor": "lab-zhou", "expect_error": true, "payload": { "request_id": "EXC-F02-01", "decision": "approved", "decided_by": "lab-zhou", "decided_at": "2026-09-01T10:00:00Z", "basis": "自检自批（应被拒绝）" } },
+    { "op": "record", "type": "exception_decision", "actor": "qa-director", "payload": { "request_id": "EXC-F02-01", "decision": "approved", "decided_by": "qa-director", "decided_at": "2026-09-01T10:30:00Z", "basis": "第三方实验室 CNAS-L1234 复检结果 0.3ug/kg，合格，批准有条件投料并留档" } },
+    { "op": "record", "type": "test_report", "actor": "lab-zhou", "payload": { "report_id": "LAB-F02-0901-R2", "target_id": "RAW-F02-0901", "test_method": "GB-5009.24", "method_version": "v2023", "parameter": "黄曲霉毒素M1", "result": "pass", "value": 0.3, "unit": "ug/kg", "limit": 0.5, "tested_by": "lab-zhou", "issued_at": "2026-09-01T12:00:00Z", "supersedes": "LAB-F02-0901" } },
+
+    { "op": "record", "type": "shipment", "actor": "logistics", "payload": { "shipment_id": "SHIP-0901-A", "seal_no": "SEAL-AX-7781", "batch_ids": ["RAW-F01-0901", "RAW-F01-0902"], "sealed_at": "2026-09-01T11:00:00Z", "vehicle_id": "TRUCK-JIN-12", "driver_id": "driver-sun" } },
+    { "op": "record", "type": "shipment", "actor": "logistics", "payload": { "shipment_id": "SHIP-0901-B", "seal_no": "SEAL-AX-7782", "batch_ids": ["RAW-F02-0901"], "sealed_at": "2026-09-01T11:05:00Z", "vehicle_id": "TRUCK-JIN-18", "driver_id": "driver-qian" } },
+
+    { "op": "record", "type": "device_reading", "actor": "device", "payload": { "device_id": "COOLER-3", "business_key": "2026-09-01/RAW-F01-0901", "metric": "milk_temp", "value": 4.2, "unit": "C", "target_id": "RAW-F01-0901", "measured_at": "2026-09-01T08:05:00Z" } },
+    { "op": "record", "type": "device_reading", "actor": "device", "payload": { "device_id": "COOLER-3", "business_key": "2026-09-01/RAW-F01-0901", "metric": "milk_temp", "value": 4.2, "unit": "C", "target_id": "RAW-F01-0901", "measured_at": "2026-09-01T08:05:00Z" } },
+
+    { "op": "record", "type": "transform", "actor": "plant-zhao", "payload": { "run_id": "MIX-20260902-01", "output_id": "LOT-BASE-0902", "output_kind": "powder_base", "inputs": [{ "id": "SHIP-0901-A", "qty": 12000, "unit": "kg" }, { "id": "SHIP-0901-B", "qty": 6000, "unit": "kg" }], "plant_id": "PLANT-DALIAN-1", "processed_by": "plant-zhao", "produced_at": "2026-09-02T02:00:00Z" } },
+
+    { "op": "record", "type": "transform", "actor": "plant-zhao", "payload": { "run_id": "SPLIT-20260902-A", "output_id": "LOT-20260902-A", "inputs": [{ "id": "LOT-BASE-0902", "qty": 9000, "unit": "kg" }], "plant_id": "PLANT-DALIAN-1", "processed_by": "plant-zhao", "produced_at": "2026-09-02T06:00:00Z" } },
+    { "op": "record", "type": "transform", "actor": "plant-zhao", "payload": { "run_id": "SPLIT-20260902-B", "output_id": "LOT-20260902-B", "inputs": [{ "id": "LOT-BASE-0902", "qty": 9000, "unit": "kg" }], "plant_id": "PLANT-DALIAN-1", "processed_by": "plant-zhao", "produced_at": "2026-09-02T06:10:00Z" } },
+    { "op": "record", "type": "transform", "actor": "plant-zhao", "payload": { "run_id": "LINE-20260902-C", "output_id": "LOT-20260902-C", "inputs": [{ "id": "SHIP-0901-B", "qty": 2000, "unit": "kg" }], "plant_id": "PLANT-DALIAN-1", "processed_by": "plant-zhao", "produced_at": "2026-09-02T06:20:00Z" } },
+
+    { "op": "record", "type": "can_pack", "actor": "line-1", "payload": { "can_code": "CAN-890-A-0001", "lot_id": "LOT-20260902-A", "packed_at": "2026-09-02T10:00:00Z" } },
+    { "op": "record", "type": "can_pack", "actor": "line-1", "payload": { "can_code": "CAN-890-A-0002", "lot_id": "LOT-20260902-A", "packed_at": "2026-09-02T10:01:00Z" } },
+    { "op": "record", "type": "can_pack", "actor": "line-2", "payload": { "can_code": "CAN-890-B-0001", "lot_id": "LOT-20260902-B", "packed_at": "2026-09-02T10:05:00Z" } },
+    { "op": "record", "type": "can_pack", "actor": "line-3", "payload": { "can_code": "CAN-890-C-0001", "lot_id": "LOT-20260902-C", "packed_at": "2026-09-02T10:10:00Z" } },
+
+    { "op": "record", "type": "regulatory_release", "actor": "customs", "payload": { "release_id": "REL-2026-0451", "target_id": "LOT-20260902-A", "authority": "出口国官方兽医署", "certificate_no": "HC-2026-0902-A", "released_at": "2026-09-03T03:00:00Z", "released_by": "officer-zhao" } },
+    { "op": "record", "type": "consumer_purchase", "actor": "pos", "payload": { "can_code": "CAN-890-A-0001", "purchased_at": "2026-09-05T12:30:00Z", "channel": "跨境电商旗舰店" } },
+
+    { "op": "record", "type": "qrcode_snapshot", "actor": "trace-page", "payload": { "can_code": "CAN-890-A-0001", "version": 1, "generated_at": "2026-09-04T00:00:00Z" } },
+    { "op": "record", "type": "qrcode_snapshot", "actor": "trace-page", "payload": { "can_code": "CAN-890-B-0001", "version": 1, "generated_at": "2026-09-04T00:05:00Z" } },
+
+    { "op": "record", "type": "test_report", "actor": "lab-zhou", "payload": { "report_id": "LAB-F01-0901-R2", "target_id": "RAW-F01-0901", "test_method": "GB-5009.5", "method_version": "v2024", "parameter": "蛋白质", "result": "fail", "value": 2.1, "unit": "g/100g", "limit": 2.9, "tested_by": "lab-zhou", "issued_at": "2026-09-06T08:00:00Z", "supersedes": "LAB-F01-0901" } },
+
+    { "op": "isolate", "root": "RAW-F01-0901", "actor": "qa-director", "reason": "蛋白质复检不合格（方法 v2024 更正），启动全链影响传播" },
+
+    { "op": "record", "type": "qualification_update", "actor": "regulator", "payload": { "farm_id": "FARM-01", "status": "suspended", "changed_at": "2026-09-06T10:00:00Z", "reason": "两批原奶蛋白指标异常，暂停供奶资格待查" } },
+
+    { "op": "record", "type": "qrcode_snapshot", "actor": "trace-page", "payload": { "can_code": "CAN-890-A-0001", "version": 2, "generated_at": "2026-09-06T11:00:00Z" } },
+    { "op": "record", "type": "qrcode_snapshot", "actor": "trace-page", "payload": { "can_code": "CAN-890-B-0001", "version": 2, "generated_at": "2026-09-06T11:05:00Z" } },
+
+    { "op": "trace", "can_code": "CAN-890-B-0001", "neighbors": ["CAN-890-A-0001", "CAN-890-C-0001"] }
+  ]
 }

@@ -1,0 +1,41 @@
+{
+  "名称": "奶粉批次全链责任账——场景事件契约",
+  "说明": "data/sample.json 与 CLI load 使用的事件序列。事件按顺序重放，结果由事件内容与顺序唯一决定。",
+  "事件": {
+    "record": {
+      "必填": ["op", "type", "payload"],
+      "可选": ["actor", "expect_error"],
+      "type取值": [
+        "coop_membership",
+        "farm_qualification",
+        "qualification_update",
+        "raw_milk_batch",
+        "shipment",
+        "test_report",
+        "exception_request",
+        "exception_decision",
+        "transform",
+        "can_pack",
+        "regulatory_release",
+        "consumer_purchase",
+        "qrcode_snapshot",
+        "device_reading",
+        "risk_notification"
+      ],
+      "expect_error": "为 true 时该记录被拒绝不算失败（用于演示职责分离等防线）"
+    },
+    "isolate": { "必填": ["op", "root"], "可选": ["actor", "reason", "source"] },
+    "resume": { "必填": ["op", "run_id"] },
+    "trace": { "必填": ["op", "can_code"], "可选": ["neighbors"] }
+  },
+  "关键规则": [
+    "事实只追加不可删除；每条事实携带顺序 seq 与 SHA-256 哈希链，篡改历史在重放时被发现",
+    "每次合批 transform 保存投入比例 input_snapshot 与当时有效检测结论（沿投入上游归集）",
+    "检验报告以 supersedes 声明更正，withdrawn 撤回；effectiveTest 只返回当前有效结论",
+    "设备上报按 设备号+业务键 去重；同键不同测值记录冲突并隔离归属节点整条依赖链",
+    "提交检测的人不得批准与本人检测相关的例外（exception_decision.decided_by != 报告 tested_by）",
+    "关键节点隔离：仍在控制范围的后续批次冻结；已监管放行或已消费的只补发风险通知，不删除",
+    "传播演算可重复（replay 只读）、可解释（每步附路径与原因）、可恢复（检查点后续传）",
+    "二维码快照版本必须连续；新版本反映当前处置，历史版本原样保留"
+  ]
+}

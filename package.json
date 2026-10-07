@@ -1,12 +1,13 @@
 {
   "name": "formula-chain-ledger",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "奶粉批次全链责任的服务端领域基础",
+  "description": "奶粉批次全链责任账：只追加事实账本、批次谱系、可恢复可重复的影响传播与罐码反查",
   "scripts": {
     "test": "node --test",
-    "build": "node --check src/domain.js && node --check src/repository.js && node --check src/service.js && node --check src/cli.js",
-    "check:sample": "node src/cli.js validate data/sample.json"
+    "build": "node --check src/domain.js && node --check src/ledger.js && node --check src/genealogy.js && node --check src/propagation.js && node --check src/repository.js && node --check src/service.js && node --check src/cli.js",
+    "check:sample": "rm -f /tmp/formula-chain-demo.jsonl && node src/cli.js load /tmp/formula-chain-demo.jsonl data/sample.json",
+    "demo": "rm -f ./ledger.demo.jsonl && node src/cli.js load ./ledger.demo.jsonl data/sample.json"
   }
 }

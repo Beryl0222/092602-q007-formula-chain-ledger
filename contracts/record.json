@@ -1,9 +1,9 @@
 {
-  "名称": "奶粉批次全链责任基础记录",
+  "名称": "奶粉批次全链责任基础记录（v0.1 兼容契约）",
   "必填字段": [
     "record_id",
     "owner_id",
     "state"
   ],
-  "说明": "该契约只描述现有登记能力，后续领域状态在此基础上扩展。"
+  "说明": "该契约描述最早的基础登记能力，由 Service.register/find 与 data/legacy-record.json 继续支持。全链事实请使用 Service.record(type, payload) 与 contracts/ledger-scenario.json。"
 }
