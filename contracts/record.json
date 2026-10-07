@@ -1,9 +1,47 @@
 {
-  "名称": "奶粉批次全链责任基础记录",
-  "必填字段": [
-    "record_id",
-    "owner_id",
-    "state"
+  "名称": "奶粉批次全链责任账事件契约",
+  "不可变原则": [
+    "账本只追加：更正、换版、解除均为新记录，任何已写入记录不得修改或删除",
+    "每条记录含全局单调 seq，审计日志为 JSONL，可整体重放恢复",
+    "记录主键为 类型:编号，重复主键拒绝；设备幂等由业务键 business_key 判定"
   ],
-  "说明": "该契约只描述现有登记能力，后续领域状态在此基础上扩展。"
+  "记录类型": {
+    "party": "责任主体（合作社/奶农/牧场/承运/加工厂/实验室/监管/经销/品牌）",
+    "coop_membership": "奶农合作社成员关系，按挤奶时点判定责任奶农",
+    "ranch_qualification": "牧场资格版本（qualified/suspended/revoked），挤奶时点必须有效",
+    "standard_version": "检验方法/标准版本，检测结论永久锁定其版本号",
+    "raw_milk_lot": "原奶批次",
+    "transport_seal": "原奶运输封签，到货封签破损或缺记录不得投料",
+    "process": "加工投料事件，冻结投入比例与当时有效检测结论快照",
+    "merge": "合批事件，同构 process，记录各投入批次比例",
+    "split": "拆批事件，产出比例之和必须为 1",
+    "packing": "装罐，粉批次到成品罐批 1:1",
+    "can": "罐码，挂在罐批下，公开追溯最小单位",
+    "test": "检测上报；business_key 相同且测值相同去重，测值不同记为 conflict 并触发全链隔离；correction_of 为检测更正",
+    "exception_request": "例外申请",
+    "exception_approval": "例外批准/驳回；检测提交人与申请人均不得批准（职责分离），且只能决定一次",
+    "regulator_release": "监管放行；隔离/冻结批次不得放行",
+    "export_cert": "出口证明；换发通过 cert_reissue 追加，旧证明保留",
+    "disposition": "销售/消费处置；其后只接收风险通知，不冻结不删除",
+    "qr_snapshot": "二维码公开追溯页快照；更正发布新版本，qr_reissue 记录换版链",
+    "risk_notice": "风险通知，针对已放行/已售/已消费节点的唯一补救形式",
+    "quarantine_order": "隔离（源）或冻结（在控下游）指令",
+    "quarantine_lift": "隔离解除事件，原指令保留",
+    "propagation_run": "影响传播运行，创建时冻结整份计划与 plan_checksum",
+    "propagation_step": "逐节点处置检查点，服务恢复后跳过已完成节点",
+    "propagation_completion": "传播完成记录，含 affected/frozen/isolated/noticed/换发清单与校验和"
+  },
+  "传播算法": {
+    "版本": "bfs-lineage-v1",
+    "步骤": [
+      "确定性广度优先遍历下游（邻接按编号排序）",
+      "拓扑序动态规划计算源批次对各节点的投入贡献比例（菱形合流多路径求和）",
+      "源节点隔离；在控下游冻结；已依法放行/已售/已消费仅发风险通知",
+      "同一合批事件中无下游血缘的并列投入列为 neighbors_excluded 并解释"
+    ],
+    "可重复性": "计划规范化 JSON 取 SHA-256 校验和；同账本同触发源结果恒定",
+    "可恢复性": "计划在 run 创建时冻结；崩溃后 resumePropagations 按冻结计划续跑，不重算"
+  },
+  "追溯接口": "trace(can_code) 返回血缘路径与累乘比例、责任主体及角色、采用标准版本、各节点当前处置与原因、相邻批次未波及解释",
+  "基线兼容": "register/find 与 record_id/owner_id/state/revision 通用记录保持可用（generic_record）"
 }

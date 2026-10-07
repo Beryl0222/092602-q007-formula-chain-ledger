@@ -1,12 +1,12 @@
 {
   "name": "formula-chain-ledger",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "奶粉批次全链责任的服务端领域基础",
+  "description": "奶粉批次全链责任账：血缘、检测更正传播、可重复召回与断点续传",
   "scripts": {
     "test": "node --test",
-    "build": "node --check src/domain.js && node --check src/repository.js && node --check src/service.js && node --check src/cli.js",
-    "check:sample": "node src/cli.js validate data/sample.json"
+    "build": "node --check src/domain.js && node --check src/repository.js && node --check src/graph.js && node --check src/recall.js && node --check src/service.js && node --check src/cli.js",
+    "check:sample": "rm -f .sample-ledger.jsonl && node src/cli.js load data/events.sample.jsonl --db .sample-ledger.jsonl && node src/cli.js trace CAN-0001 --db .sample-ledger.jsonl > /dev/null && node src/cli.js recall raw-r1a --db .sample-ledger.jsonl > /dev/null && rm -f .sample-ledger.jsonl"
   }
 }
